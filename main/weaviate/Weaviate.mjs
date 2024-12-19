@@ -1,11 +1,9 @@
-import { getSmolVLMImageDescription, getPixtralApiImageResponse } from '../handlers/requesters.mjs';
 import { sendMessage, typingIndicator } from '../handlers/messages.mjs';
 import { DiscordCompletion } from '../handlers/ChatCompletions.mjs';
 import dms from './schemas/DiscordmessageSchema2.mjs';
 import { v4 as uuidv4 } from 'uuid';
 import { inspect } from 'util';
 import weaviate, {
-  WeaviateClient, Collection,
   ApiKey,
   generative,
   vectorizer
@@ -17,10 +15,10 @@ const Config = (await import('../../config.json', { with: { type: "json" } })).d
  * Manages data operations with Weaviate.
  */
 class WeaviateDataManager {
-  /**@private @type {WeaviateClient}*/ client;
+  /**@private*/ client;
   /**@private*/ dataCollectionName;
   /**@private*/ modelProvider;
-  /**@type {Collection}*/ dataCollection;
+  dataCollection;
   modelApiKey;
 
   /**
