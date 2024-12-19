@@ -1,10 +1,10 @@
 {
-  "name": "onsocket",
+  "name": "mistraldiscord",
   "version": "1.0.4m (Mistral)",
   "description": "Discord Ai Solution",
-  "main": "./main/OnSocket.mjs",
+  "main": "./main/MistralDiscord.mjs",
   "scripts": {
-    "start": "node ./main/OnSocket.mjs"
+    "start": "node ./main/MistralDiscord.mjs"
   },
   "author": "Goodsie",
   "license": "MIT",
