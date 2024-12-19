@@ -1,0 +1,13 @@
+{
+  "name": "1fcbe67c-2f4c-45d2-b888-5244f01825fe",
+  "version": "1.0.0",
+  "description": "A project",
+  "type": "module",
+  "main": "index.mjs",
+  "dependencies": {
+    "form-data": "^4.0.1",
+    "natural": "^8.0.1",
+    "uuid": "^11.0.3",
+    "weaviate-client": "^3.2.5"
+  }
+}

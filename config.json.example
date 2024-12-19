@@ -1,0 +1,46 @@
+{
+  "Config": {
+    "main": {
+      "DEBUG": true,
+      "DOMAIN": "localhost",
+      "localhost": "http://192.168.0.0"
+    },
+    "ssl": {
+      "local": {
+        "key": "/etc/ssl/local/localhost.key",
+        "cert": "/etc/ssl/local/localhost.crt"
+      },
+      "key": "/etc/ssl/private.key",
+      "cert": "/etc/ssl/certificate.crt",
+      "ca": "/etc/ssl/ca_bundle.crt"
+    },
+    "container":{
+      "imageName": "mistral-discord",
+      "buildSource": "/path.to/MistralDiscord/etc/build_sources/discordAiGateway",
+      "bindsDir": "/path.to/MistralDiscord/main/aiContainer"
+    },
+    "discord": {
+      "token": "discord_bot_token"
+    },
+    "mistralaiConfig": {
+      "mistralaiApiKey": "mistralai_api_key",
+      "completionOptions": {
+        "model": "mistral-large-latest",
+        "top_p": 0.3,
+        "max_tokens": 2048,
+        "stream": false,
+        "safe_prompt": false
+      },
+      "mistralEmbeds": "mistral-embed"
+    },
+    "weaviateConfig": {
+      "dialogsCluster": {
+        "dialogsClusterRest": "https://something.gcp.weaviate.cloud",
+        "dialogsClustergRPC": "https://something.gcp.weaviate.cloud",
+        "dialogsClusterGraphQL": "https://something.gcp.weaviate.cloud/v1/graphql",
+        "adminApiKey": "admin_key",
+        "readonlyApiKey": "read_only_key"
+      }
+    }
+  }
+}
