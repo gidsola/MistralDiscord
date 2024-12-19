@@ -14,12 +14,16 @@ MistralDiscord is a Discord AI solution that leverages MistralAI Api to provide 
 
 1. Clone the repository:
    
-git clone https://github.com/yourusername/MistralDiscord.git
+git clone https://github.com/gidsola/MistralDiscord.git
 cd MistralDiscord
    
 2. Install the necessary dependencies:
    
 npm install
+
+3. Edit the config.json.example file:
+
+Don't forget to rename it, removing the .example extension.
    
 ## Running the Software
 
