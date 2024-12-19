@@ -35,7 +35,7 @@ The `npm start` command will perform the following actions:
  ## Edit
   There are 2 terminal commands you can use after starting the software:
    - exit: Will exit the software but leave containers running. Useful when editing non build source items.
-   - shutdown: Will terminate and shutdown the server AND any running containers.
+   - shutdown: Will shutdown the server AND any running containers.
 
 
 I hope this will allow folks a chance to play with Ai when they could not before.
