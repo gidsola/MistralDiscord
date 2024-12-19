@@ -14,12 +14,12 @@ MistralDiscord is a Discord AI solution that leverages MistralAI Api to provide 
 
 1. Clone the repository:
    
-git clone https://github.com/gidsola/MistralDiscord.git
-cd MistralDiscord
+`git clone https://github.com/gidsola/MistralDiscord.git`  
+`cd MistralDiscord`
    
 2. Install the necessary dependencies:
    
-npm install
+`npm install`
 
 3. Edit the config.json.example file:
 
@@ -34,8 +34,10 @@ The `npm start` command will perform the following actions:
 
  ## Edit
   There are 2 terminal commands you can use after starting the software:
-   - exit: Will exit the software but leave containers running. Useful when editing non build source items.
-   - shutdown: Will shutdown the server AND any running containers.
+   - `exit`: Will exit the software but leave containers running. Useful when editing non build source items.
+   - `shutdown`: Will shutdown the server AND any running containers.
+
+
 
 
 I hope this will allow folks a chance to play with Ai when they could not before.
