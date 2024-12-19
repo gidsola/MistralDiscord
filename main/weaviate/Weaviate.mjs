@@ -1,32 +1,35 @@
-
-
+import { getSmolVLMImageDescription, getPixtralApiImageResponse } from '../handlers/requesters.mjs';
+import { sendMessage, typingIndicator } from '../handlers/messages.mjs';
+import { DiscordCompletion } from '../handlers/ChatCompletions.mjs';
+import dms from './schemas/DiscordmessageSchema2.mjs';
+import { v4 as uuidv4 } from 'uuid';
+import { inspect } from 'util';
 import weaviate, {
+  WeaviateClient, Collection,
   ApiKey,
   generative,
   vectorizer
 } from 'weaviate-client';
-import { DiscordCompletion } from '../handlers/ChatCompletions.mjs';
-import { sendMessage, typingIndicator } from '../handlers/messages.mjs';
-import { getSmolVLMImageDescription, getPixtralApiImageResponse } from '../handlers/requesters.mjs';
-import dms from './schemas/DiscordmessageSchema2.mjs';
-import { v4 as uuidv4 } from 'uuid';
-import { inspect } from 'util';
 
 const Config = (await import('../../config.json', { with: { type: "json" } })).default.Config;
 
 /**
- * The `WeaviateDataManager` class is responsible for managing the data exchange between the Weaviate API and the bot.
- * It handles the creation and management of data collections, as well as the storage and retrieval of data.
- * The class also provides methods for initializing the Weaviate client and data collection.
- * 
+ * Manages data operations with Weaviate.
  */
 class WeaviateDataManager {
-  /*private*/ client;
-  /*private*/ dataCollectionName;
-  /*private*/ modelProvider;
-  dataCollection;
+  /**@private @type {WeaviateClient}*/ client;
+  /**@private*/ dataCollectionName;
+  /**@private*/ modelProvider;
+  /**@type {Collection}*/ dataCollection;
   modelApiKey;
 
+  /**
+   * Creates a new instance of the `WeaviateDataManager` class.
+   * 
+   * @param {string} collection - The name of the collection to use.
+   * @param {string} modelProvider - The name of the model provider.
+   * @param {string} modelApiKey - The API key for the model.
+   */
   constructor(collection, modelProvider, modelApiKey) {
     this.modelProvider = modelProvider;
     this.modelApiKey = modelApiKey;
@@ -36,8 +39,6 @@ class WeaviateDataManager {
   /**
    * Initializes the Weaviate client and named data collection.
    * This method is meant to be used as a creation method.
-   * 
-   * @returns A promise that resolves to `true` if successful, otherwise `false`.
    */
   async initialize() {
     try {
@@ -57,9 +58,6 @@ class WeaviateDataManager {
 
   /**
    * Retrieves a Weaviate client instance.
-   *
-   * @returns A promise that resolves to a WeaviateClient instance if successful,
-   * or an Error if the client is not ready or an exception occurs.
    */
   async getClient() {
     try {
@@ -92,9 +90,6 @@ class WeaviateDataManager {
 
   /**
    * Opens a client collection channel.
-   * 
-   * @returns A promise that resolves to boolean `true` if successful, otherwise `false`.
-   * 
    */
   async openCollectionChannel() {
     try {
@@ -119,10 +114,7 @@ class WeaviateDataManager {
   };
 
   /**
-   * Creates a new collection with the specified configuration.
-   * 
-   * @returns A promise that resolves to the created collection or null if an error occurs.
-   * 
+   * Creates a Weaviate collection.
    */
   async createCollection() {
     try {
@@ -163,12 +155,20 @@ class WeaviateDataManager {
     };
   };
 
-  async storeDiscordMessagePayload(role, params) {
+  /**
+   * Stores a Discord message payload.
+   *
+   * @param {string} role - The role associated with the Discord message.(user or assistant)
+   * @param {any} payload - The Discord message payload.
+   * @param {string} payload.id - The Discord message id.
+   * @returns The ID of the inserted object.
+   */
+  async storeDiscordMessagePayload(role, payload) {
     try {
       if (this.dataCollection === null)
         throw new Error('Error getting collection');
 
-      const insertObj = { ...params, messageID: params.id, role };
+      const insertObj = { ...payload, messageID: payload.id, role };
       // remove id from insertObj (id is a reserved item with Weaviate)
       delete insertObj.id;
       // make any null values as undefined
@@ -186,38 +186,31 @@ class WeaviateDataManager {
       return await this.dataCollection.data.insert({ id: uuidv4(), properties: { ...insertObj } });
     }
     catch (e) {
-      console.error("insert discord message", e.message || e);
+      console.error("storeDiscordMessagePayload::", e.message || e);
       return e.message || e;
     };
   };
-
-
-
-
 };
 
 /**
- * The `WeaviateMethodHandler` class is responsible for handling interactions with the Weaviate API.
- * It manages the exchange of messages using various methods and search types, and generates responses
- * based on user messages and chat history.
+ * Handles the interactions between mediums.
  */
 class WeaviateMethodHandler {
-  /*private*/WeaviateDataManager;
-  /*private*/ completionOptions;
+  /**@private @type {WeaviateDataManager}*/ WeaviateDataManager;
+  /**@private*/ completionOptions;
+
+  /**
+   * Creates a new instance of the `WeaviateMethodHandler` class.
+   * 
+   * @param {WeaviateDataManager} weaviateDataManager - The data manager instance.
+   * @param {any} completionOptions - Options for completion.
+   */
   constructor(weaviateDataManager, completionOptions) {
     this.WeaviateDataManager = weaviateDataManager;
     this.completionOptions = completionOptions;
   };
 
-  /**
-   * Handles the interaction between a Discord bot and Weaviate, a vector search engine.
-   * 
-   * @param {string} bot_token - The token for the Discord bot.
-   * @param {Object} input - The input object containing details of the Discord message.
-   * @param {string} input.channel_id - The ID of the Discord channel where the message was sent.
-   * @param {string} input.content - The content of the user's message.
-   * @returns {Promise<string>} - The AI-generated response.
-   */
+
   async discordxchange(bot_token, input) {
     if (!this.WeaviateDataManager)
       return 'Error getting weaviate data manager';
@@ -231,9 +224,6 @@ class WeaviateMethodHandler {
     // engage
     await typingIndicator(input.channel_id, bot_token);
 
-
-
-
     const
       userQuery = input.content,
       baseHybridOptions = {
@@ -242,6 +232,7 @@ class WeaviateMethodHandler {
         // queryProperties: [], // empty to enable searching all fields
         fusionType: "Ranked", // "RelativeScore" | "Ranked"
       },
+      // search for ctx from user query
       weaviateReturn = await collection.query.hybrid(userQuery, baseHybridOptions),
       dataObject = weaviateReturn.objects,
 
@@ -251,8 +242,7 @@ class WeaviateMethodHandler {
         this.completionOptions,
         userQuery,
         dataObject,
-        input,
-        bot_token
+        input
       );
 
     // engage user(extra helpful here if handling takes a long time)
@@ -275,10 +265,10 @@ class WeaviateMethodHandler {
    * Handles different types of tasks, including image description tasks.
    *
    * @param {string} modelApiKey - The API key for the model.
-   * @param {object} completionOptions - Options for the completion request.
+   * @param {any} completionOptions - Options for the completion request.
    * @param {string} userQuery - The user's query.
-   * @param {object} dataObject - Additional data object for context.
-   * @param {object} input - The input object containing channel information.
+   * @param {any} dataObject - Additional data object for context.
+   * @param {any} input - The input object containing channel information.
    * @param {string} bot_token - The bot token for authentication.
    * @returns {Promise<string>} - The generated response or an error message.
    */
@@ -287,8 +277,7 @@ class WeaviateMethodHandler {
     completionOptions,
     userQuery,
     dataObject,
-    input,
-    bot_token
+    input
   ) {
     try {
       const
@@ -297,62 +286,9 @@ class WeaviateMethodHandler {
         response = await DiscordCompletion(modelApiKey, completionOptions, userQuery, dataObject, input),
         parsed = await response.json();
 
-      if (response.ok) {
-        // capture response text(currently from MistralAI)
-        const text = parsed.choices[0].message.content;
+      if (response.ok)
+        return parsed.choices[0].message.content;
 
-        // TODO: add generated tasklist import.
-
-        // ignore this if you're seeing it.
-
-        // TODO: base on split char exists
-        if (text.includes('USER_TASK')) {
-          await typingIndicator(input.channel_id, bot_token);
-
-          //TODO: fix and use
-          // get arguements
-          const parts = text.split(':USER_IMAGE');// need new split char
-          console.log("Parts", parts);
-
-          const task = parts[0].split('USER_TASK')[1].trim();
-          const image_url = parts[1].trim(); // needs to be if image task
-
-          // engage user
-          await sendMessage(input.channel_id, { content: "One moment please.." }, bot_token);
-          await typingIndicator(input.channel_id, bot_token);
-
-          const image_describe = true; // set to true to use image describe task
-          if (image_describe) {
-            const api = false; // set to true to use api
-            if (!api) {
-              // image describe task: local
-              const imageDescription = await getSmolVLMImageDescription(task, image_url);
-              return imageDescription;
-            }
-            // image describe task: api
-            else if (api) {
-              const
-                imageTaskResponse = await getPixtralApiImageResponse(
-                  modelApiKey,
-                  completionOptions,
-                  userQuery,
-                  image_url
-                ),
-                imageTaskParsed = await imageTaskResponse.json();
-
-              return imageTaskResponse.ok
-                ? imageTaskParsed.choices[0].message.content
-                : imageTaskParsed.detail.map((msg) => inspect(msg, { depth: null }));
-            };
-          };
-
-          return "User task not found" + task;
-
-        }
-        // regular response
-        else
-          return text;
-      }
       // error response
       else
         return parsed.detail && parsed.detail.map((msg) => inspect(msg, { depth: null }));// : 'something weird happened..';// TODO: actually handle this
