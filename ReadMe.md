@@ -32,7 +32,7 @@ The `npm start` command will perform the following actions:
  - Build a "core" image used for the Discord connection.
  - Create a Docker container using a Binds mount.
 
- ## Edit
+ ## Terminal Entry
   There are 2 terminal commands you can use after starting the software:
    - `exit`: Will exit the software but leave containers running. Useful when editing non build source items.
    - `shutdown`: Will shutdown the server AND any running containers.
